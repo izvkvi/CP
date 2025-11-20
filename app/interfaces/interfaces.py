@@ -111,6 +111,16 @@ class IUserRepository(ABC):
     async def create_ranks(self, data: List[RankEntity]) -> List[RankEntity]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def get(self,
+                  ids: List[UUID],
+                  invocations: List[str],
+                  is_deleted: bool,
+                  post_ids: List[UUID],
+                  rank_ids: List[UUID],
+                  duties_ids: List[UUID],
+                  projects_ids: List[UUID]) -> List[UserEntity]:
+        raise NotImplementedError
 
 class ITaskRepository(ABC):
     @abstractmethod

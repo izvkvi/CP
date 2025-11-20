@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -25,6 +25,65 @@ from app.logger.logger import logger
 class UserRepository(IUserRepository):
     def __init__(self, session):
         self.session = session
+
+    async def get(self,
+                  ids: List[UUID],
+                  invocations: List[str],
+                  is_deleted: bool,
+                  post_ids: List[UUID],
+                  rank_ids: List[UUID],
+                  duties_ids: List[UUID],
+                  projects_ids: List[UUID]
+                  ) -> List[UserEntity]:
+
+        stmt = select(User).options(
+            selectinload(User.rank),
+            selectinload(User.post),
+            selectinload(User.duties),
+            selectinload(User.projects)
+        )
+
+        if ids:
+            stmt = stmt.where(User.id.in_(ids))
+
+        if invocations:
+            stmt = stmt.where(User.invocation.in_(invocations))
+
+        if not is_deleted:
+            stmt = stmt.where(or_(User.is_deleted.is_(False), User.is_deleted.is_(None)))
+
+        if post_ids:
+            stmt = stmt.where(User.post_id.in_(post_ids))
+
+        if rank_ids:
+            stmt = stmt.where(User.rank_id.in_(rank_ids))
+
+        if duties_ids:
+            stmt = stmt.where(User.duties.any(CompanyDuty.id.in_(duties_ids)))
+
+        if projects_ids:
+            stmt = stmt.where(User.projects.any(Project.id.in_(projects_ids)))
+
+        results = (await self.session.execute(stmt)).scalars().all()
+
+        return [UserEntity(
+            id=result.id,
+            username=result.username,
+            name=result.name,
+            surname=result.surname,
+            second_name=result.second_name,
+            short_name=result.short_name,
+            short_name_2=result.short_name_2,
+            invocation=result.invocation,
+            hashed_password=result.hashed_password,
+            is_superuser=result.is_superuser,
+            is_deleted=result.is_deleted,
+            register_at=result.register_at,
+            post_id=result.post_id,
+            rank_id=result.rank_id,
+            duties=[CompanyDutyEntity(id=duty.id) for duty in result.duties],
+            projects=[ProjectEntity(id=project.id) for project in result.projects],
+        ) for result in results]
 
     async def get_superusers(self) -> list[UserEntity] | None:
         stmt = select(User).where(User.is_superuser == True, User.is_deleted == False)

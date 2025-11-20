@@ -13,4 +13,3 @@ class UserCreate(BaseModel):
     invocation: str
     rank_id: Optional[UUID]
     post_id: Optional[UUID]
-

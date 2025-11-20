@@ -48,3 +48,24 @@ class UserService:
         if not users:
             raise UserNotFoundError("Users not found")
         return users
+
+    async def get(
+            self,
+            ids: List[UUID] = None,
+            invocations: List[str] = None,
+            is_deleted: bool = False,
+            post_ids: List[UUID] = None,
+            rank_ids: List[UUID] = None,
+            duties_ids: List[UUID] = None,
+            projects_ids: List[UUID] = None,
+            ) -> List[UserEntity]:
+        result = await self.user_repo.get(
+            ids=ids,
+            invocations=invocations,
+            is_deleted=is_deleted,
+            post_ids=post_ids,
+            rank_ids=rank_ids,
+            duties_ids=duties_ids,
+            projects_ids=projects_ids,
+        )
+        return result
