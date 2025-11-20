@@ -18,6 +18,7 @@ from app.api.v1 import (
     shedule_routers,
     user_routers,
     utils_routers,
+    tasks_routers
 )
 from app.core.config import settings
 from app.core.database import engine, init_db, shutdown_db
@@ -118,3 +119,5 @@ app.include_router(auth_routers.router, prefix="/api/v1")
 app.include_router(minio_routers.router, prefix="/api/v1")
 app.include_router(shedule_routers.router, prefix="/api/v1")
 app.include_router(utils_routers.router, prefix="/api/v1")
+app.include_router(tasks_routers.router, prefix="/api/v1")
+

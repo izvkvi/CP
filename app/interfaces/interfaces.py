@@ -3,6 +3,7 @@ from typing import List
 from datetime import datetime
 from uuid import UUID
 
+from app.entities.attachment import AttachmentEntity
 from app.entities.company_duty import CompanyDutyEntity
 from app.entities.post import PostEntity
 from app.entities.rank import RankEntity
@@ -59,6 +60,10 @@ class IUserRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get_project_users(self, project_id: UUID) -> List[UserEntity]:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_superusers(self) -> List[UserEntity] | None:
         raise NotImplementedError
 
@@ -109,6 +114,10 @@ class IUserRepository(ABC):
 
 class ITaskRepository(ABC):
     @abstractmethod
+    async def create_attachment(self, task_id: UUID, path: str, filename: str) -> AttachmentEntity:
+        raise NotImplementedError
+
+    @abstractmethod
     async def create(self, task: TaskEntity) -> TaskEntity:
         raise NotImplementedError
 
@@ -122,10 +131,13 @@ class ITaskRepository(ABC):
 
     @abstractmethod
     async def get(
-        self, task_ids: List[UUID], owner_id: UUID, responsible_id: UUID
+        self, task_ids: List[UUID], owner_id: UUID
     ) -> List[TaskEntity]:
         raise NotImplementedError
 
     @abstractmethod
     async def get_by_id(self, task_id: UUID) -> TaskEntity:
         raise NotImplementedError
+
+
+

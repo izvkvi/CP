@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.core.database import get_session
 from app.dependencies.auth_depend import check_auth_dep
-from app.dependencies.premission_depend import check_upload_permission
+from app.dependencies.premission_depend import check_duty_permission
 from app.entities.user import UserEntity
 from app.exceptions.exceptions import (
     ExcelParsingError,
@@ -42,7 +42,7 @@ async def upload_vigils(
     session=Depends(get_session),
     user: UserEntity = Depends(check_auth_dep),
 ):
-    await check_upload_permission(
+    await check_duty_permission(
         duty_id=UUID("180cd959-23d7-4fff-a7b7-da29e73bea9a"),
         user=user,
         session=session,

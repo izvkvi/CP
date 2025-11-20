@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy import UUID, Column, ForeignKey, String
 
-from app.core.database import Base
+from app.models.base_model import Base
 
 
 class Attachment(Base):

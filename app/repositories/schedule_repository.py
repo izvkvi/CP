@@ -288,4 +288,10 @@ class ScheduleRepository(IScheduleRepository):
 
         self.session.add_all(vigils_orm)
         await self.session.commit()
-        return [VigilEnumEntity.from_model(v) for v in vigils_orm]
+        return [VigilEnumEntity(
+            id=v.id,
+            name=v.name,
+            is_deleted=v.is_deleted,
+            name_in_csv=v.name_in_csv,
+            post_in_csv=v.post_in_csv
+        ) for v in vigils_orm]

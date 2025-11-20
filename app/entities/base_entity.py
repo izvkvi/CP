@@ -1,115 +1,57 @@
+from __future__ import annotations
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, get_args, get_origin
-
-from app.models.base_model import Base
+from typing import Any, Dict
 
 
+@dataclass
 class BaseEntity:
+    """
+    Базовая сущность для всех Entity.
+    Поддерживает:
+    - Преобразование Pydantic или dataclass схем в Entity (from_schema)
+    - Сериализацию в словарь без None полей (to_dict)
+    """
+
+    # Защита от циклов при рекурсивной сериализации
+    _visited: set[int] = field(default_factory=set, init=False, repr=False, compare=False)
+
     def to_dict(self) -> dict:
-        def convert(value: Any):
+        def convert(value: Any, visited: set[int]) -> Any:
+            if value is None:
+                return None
             if isinstance(value, BaseEntity):
+                obj_id = id(value)
+                if obj_id in visited:
+                    return None  # предотвращаем бесконечную рекурсию
+                visited.add(obj_id)
                 return value.to_dict()
             elif isinstance(value, list):
-                return [convert(v) for v in value]
+                converted = [convert(v, visited) for v in value]
+                return [v for v in converted if v is not None] or None
             elif isinstance(value, dict):
-                return {k: convert(v) for k, v in value.items()}
+                converted = {k: convert(v, visited) for k, v in value.items()}
+                return {k: v for k, v in converted.items() if v is not None} or None
             elif isinstance(value, datetime):
                 return value.isoformat()
             else:
                 return value
 
-        result = {}
-        for k, v in self.__dict__.items():
-            if k.startswith("_") or v is None:
-                continue
-            result[k] = convert(v)
-        return result
+        return {k: v for k, v in ((k, convert(val, self._visited.copy())) for k, val in self.__dict__.items() if not k.startswith("_")) if v is not None}
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
-        allowed_fields = cls.__annotations__.keys()
-        filtered = {k: v for k, v in data.items() if k in allowed_fields}
-        return cls(**filtered)
-
-    @classmethod
-    def from_schema(cls, schema: Any):
+    def from_schema(cls, schema: Any) -> BaseEntity:
+        """
+        Создаёт Entity из Pydantic модели или dataclass схемы.
+        Игнорирует unset/None значения.
+        """
         if hasattr(schema, "model_dump"):
             data = schema.model_dump(exclude_unset=True)
         elif hasattr(schema, "dict"):
             data = schema.dict(exclude_unset=True)
         else:
             raise TypeError("Schema must be a Pydantic model or dataclass")
-        return cls.from_dict(data)
 
-    @classmethod
-    def from_model(cls, model, load_relations: bool = False):
-        """
-        Преобразует SQLAlchemy модель в Entity.
-        Если load_relations=False, не обращается к связанным объектам,
-        чтобы избежать ленивых запросов и падений в async.
-        """
         allowed_fields = cls.__annotations__.keys()
-        data = {}
-
-        for field in allowed_fields:
-            if not hasattr(model, field):
-                continue
-            value = getattr(model, field)
-
-            if value is None:
-                data[field] = None
-                continue
-
-            entity_type = cls.__annotations__.get(field)
-            origin_type = get_origin(entity_type)
-            args = get_args(entity_type)
-
-            # Списки
-            if origin_type in (list, List) and args:
-                inner_type = args[0]
-                if isinstance(value, list):
-                    if load_relations and hasattr(inner_type, "from_model"):
-                        data[field] = [
-                            (
-                                inner_type.from_model(v, load_relations=True)
-                                if isinstance(v, Base)
-                                else v
-                            )
-                            for v in value
-                        ]
-                    else:
-                        data[field] = value
-                else:
-                    data[field] = value
-                continue
-
-            # Optional
-            if origin_type is Optional and args:
-                inner_type = args[0]
-                if (
-                    load_relations
-                    and hasattr(inner_type, "from_model")
-                    and isinstance(value, Base)
-                ):
-                    data[field] = inner_type.from_model(
-                        value, load_relations=True
-                    )
-                else:
-                    data[field] = value
-                continue
-
-            # Entity
-            if (
-                load_relations
-                and hasattr(entity_type, "from_model")
-                and isinstance(value, Base)
-            ):
-                data[field] = entity_type.from_model(
-                    value, load_relations=True
-                )
-                continue
-
-            # Простые поля
-            data[field] = value
-
-        return cls(**data)
+        filtered = {k: v for k, v in data.items() if k in allowed_fields}
+        return cls(**filtered)

@@ -1,8 +1,6 @@
-from app.entities.base_entity import BaseEntity
-from uuid import UUID
-
 from dataclasses import dataclass
-
+from uuid import UUID
+from app.entities.base_entity import BaseEntity
 
 @dataclass
 class ProjectEntity(BaseEntity):

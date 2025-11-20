@@ -42,7 +42,6 @@ async def refresh(
     service = AuthService(repo)
 
     try:
-
         access, refresh = await service.refresh_tokens(body.refresh_token)
         return TokenResponse(access_token=access, refresh_token=refresh)
     except InvalidRefreshTokenError as e:

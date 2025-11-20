@@ -1,13 +1,12 @@
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.entities.user import UserEntity
 
 
-async def check_upload_permission(
-    duty_id: UUID, user: UserEntity, session: AsyncSession
+async def check_duty_permission(
+    duty_id: UUID, user: UserEntity
 ):
     if user.is_superuser:
         return True
@@ -17,3 +16,4 @@ async def check_upload_permission(
             status_code=403, detail="You don't have permissions"
         )
     return True
+

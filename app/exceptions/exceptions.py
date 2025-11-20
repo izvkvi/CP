@@ -36,3 +36,9 @@ class NoVigilsDataFromExcel(Exception):
 
 class ResponsibleTypeError(Exception):
     pass
+
+class ErrorTaskSettings(Exception):
+    pass
+
+class TaskNotFound(Exception):
+    pass

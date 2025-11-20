@@ -14,10 +14,20 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def register(user_data: UserCreate, session=Depends(get_session)):
     service = UserService(UserRepository(session))
     try:
-        user_ent = UserEntity.from_schema(user_data)
+        user_ent = UserEntity(
+            username=user_data.username,
+            hashed_password=user_data.password,
+            name=user_data.name,
+            surname=user_data.surname,
+            second_name=user_data.second_name,
+            invocation=user_data.invocation,
+            rank_id=user_data.rank_id,
+            post_id=user_data.post_id,
+        )
+
         user = await service.create(user_ent)
         user_map = user.to_dict()
-        user_map = user_map.pop("hashed_password")
+        user_map.pop("hashed_password")
         return {"user": user_map, "detail": "User created successfully"}
     except UserAlreadyExistsError as e:
         raise HTTPException(status_code=400, detail=str(e))

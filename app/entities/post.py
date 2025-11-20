@@ -3,7 +3,6 @@ from uuid import UUID
 
 from dataclasses import dataclass
 
-
 @dataclass
 class PostEntity(BaseEntity):
     id: UUID | None = None

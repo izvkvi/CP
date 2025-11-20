@@ -11,5 +11,6 @@ class UserCreate(BaseModel):
     surname: str
     second_name: str
     invocation: str
+    rank_id: Optional[UUID]
+    post_id: Optional[UUID]
 
-    model_config = {"from_attributes": True}
