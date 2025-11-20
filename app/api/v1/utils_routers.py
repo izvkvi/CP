@@ -91,6 +91,7 @@ async def update_data_config(session=Depends(get_session)):
 
         vigils_type = await service.set_standard_vigils(data=vigil)
         company_duties = [
+            CompanyDutyEntity(name="СОЗДАТЕЛЬ"),
             CompanyDutyEntity(name="Каптер"),
             CompanyDutyEntity(name="Принтер/плоттер"),
             CompanyDutyEntity(name="Полив цветов"),
@@ -157,6 +158,7 @@ async def update_data_config(session=Depends(get_session)):
             PostEntity(name="Командир роты (научной)"),
         ]
         posts = await service.set_standard_posts(data=posts)
+        # ТЕСТОВЫЙ АККАУНТ МОДЕРАТОРА В ПОСЛЕДСТВИИ ДОЛЖЕН БЫТЬ АККАУНТ КОМ РОТЫ (пока непонятно по логике, скорее всего будет не только ком роты но и какая-то ротная обязанность)
         user = UserEntity(
             username="admin",
             name="admin",

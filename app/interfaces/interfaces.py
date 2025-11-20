@@ -126,12 +126,12 @@ class ITaskRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def delete(self, task: TaskEntity) -> TaskEntity:
+    async def delete(self, task: TaskEntity) -> bool:
         raise NotImplementedError
 
     @abstractmethod
     async def get(
-        self, task_ids: List[UUID], owner_id: UUID
+        self, task_ids: List[UUID], responsible_id: UUID
     ) -> List[TaskEntity]:
         raise NotImplementedError
 
